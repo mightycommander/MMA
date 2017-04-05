@@ -35,7 +35,7 @@ class MmaFighterItem(scrapy.Item):
 	height = scrapy.Field()
 	weight = scrapy.Field()
 	born = scrapy.Field()
+	nationality = scrapy.Field()
 	association = scrapy.Field()
 	weight = scrapy.Field()
 	record = scrapy.Field()
-	

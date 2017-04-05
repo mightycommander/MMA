@@ -5,6 +5,11 @@
 
 import scrapy
 from mmaspider.items import MmaspiderItem, MmaFighterItem
+import pandas as pd
+import os
+
+
+
 
 
 class MmaSpider(scrapy.Spider):
@@ -54,23 +59,37 @@ class MmaSpider(scrapy.Spider):
 				item['fightNum'] = fight.xpath('.//td/text()').extract()[2].strip()
 			yield item
 
-	def parse_dir_contents(self, response):
-		for sel in response.css('.container'):
-			item = HiphotelsItem()
-			item['name'] = sel.xpath('div/h2/text()').extract()
-			item['location'] = sel.xpath('div/div/div/div[@class="hotel-description"]/text()').extract()
-			yield item
+
+
+df = pd.read_csv(r'items.csv')
+df1 = df['fighterOneUrl']
+df2 = df1.append(df['fighterTwoUrl'])
+
 
 class fighterSpider(scrapy.Spider):
+
 
 	name = "fighterspider"
 	allowed_domains = ["sherdog.com"]
 	start_urls = [
-		"http://www.sherdog.com/fighter/"
+		"http://www.sherdog.com"
 	]
 
 	def parse(self, response):
-		for href in response.xpath('//td/a[@itemprop]/@href'):
-			url = response.urljoin(href.extract())
-			yield scrapy.Request(url, callback=self.parse_title)
+		for href in df2.unique():
+			url = response.urljoin(href)
+			yield scrapy.Request(url, callback=self.parse_fighter)
+
+	def parse_fighter(self, response):
+		fighter = MmaFighterItem()
+		fighter['name'] = response.css('.fn').xpath('text()').extract()
+
+		fighter['dob'] = response.xpath(".//*[@itemprop = 'birthDate']/text()").extract()
+		fighter['born'] = response.xpath(".//*[@itemprop = 'addressLocality']/text()").extract()
+		fighter['nationality'] = response.xpath(".//*[@itemprop = 'nationality']/text()").extract()
+		
+		fighter['height'] = response.css('.height').xpath('text()').extract()[2]
+		fighter['weight'] = response.css('.weight').xpath('text()').extract()[2]
+		fighter['association'] = response.css('.wclass .title a').xpath('text()').extract()
+		yield fighter
 	
