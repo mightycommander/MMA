@@ -4,7 +4,7 @@
 # your spiders.
 
 import scrapy
-from mmaspider.items import MmaspiderItem, MmaFighterItem
+from mmaspider.items import MmaspiderItem, MmaFighterItem, WikiBelEventItem
 import pandas as pd
 import os
 
@@ -100,4 +100,21 @@ class WikiUFCSpider(scrapy.Spider):
 	start_urls = ["https://en.wikipedia.org/wiki/UFC_18"]
 
 	def parse(self, response):
+		pass
 
+class wikiBellatorEvent(scrapy.Spider):
+	name = "WikiBel"
+	allowed_domains = ["wikipedia.org"]
+	start_urls = ["https://en.wikipedia.org/wiki/Bellator_Fighting_Championships:_Season_Six"]
+
+
+	def parse(self, response):
+
+		for x, fight in enumerate(response.css('.wikitable tr:has(>td)')):
+			belevent = WikiBelEventItem()
+			belevent['event'] = response.css('.infobox:not(.vevent)').xpath('.//tr[1]/th/text()').extract()[x]
+			belevent['date'] = response.css('.infobox:not(.vevent)').xpath('.//tr[3]/td/text()').extract()[x]
+			belevent['city'] = response.css('.infobox:not(.vevent)').xpath('.//tr[5]/td/a/text()').extract()[x]
+			belevent['weightclass'] = fight.xpath('tr/text()').extract()
+
+			yield belevent
