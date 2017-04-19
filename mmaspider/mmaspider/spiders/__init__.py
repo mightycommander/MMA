@@ -4,7 +4,7 @@
 # your spiders.
 
 import scrapy
-from mmaspider.items import MmaspiderItem, MmaFighterItem
+from mmaspider.items import MmaspiderItem, MmaFighterItem, WikiEventItem
 import pandas as pd
 import os
 
@@ -92,4 +92,52 @@ class fighterSpider(scrapy.Spider):
 		fighter['weight'] = response.css('.weight').xpath('text()').extract()[2]
 		fighter['association'] = response.css('.wclass .title a').xpath('text()').extract()
 		yield fighter
-	
+
+
+class WikiUFCScrape(scrapy.Spider):
+	name = "wikiEvent"
+	allowed_domains = ["wikipedia.org"]
+	start_urls = [
+		"https://en.wikipedia.org/wiki/UFC_159"
+	]
+		
+
+		
+	def parse(self, response):
+		promo, venue, city  = response.css('.infobox tr td a::text').extract()[0:3]
+		date = response.css('.infobox').xpath('tr/td/text()').extract()[2]
+		for deets in response.css('.toccolours tr').xpath('.//td/..'):
+			eve = WikiEventItem()
+			eve['promotion'] = promo
+			eve['date'] = date
+			eve['venue'] = venue
+			eve['city'] = city
+			if deets.xpath('.//td[2]/a/text()').extract():
+				eve['fighterOne'] = deets.xpath('.//td[2]/a/text()').extract()
+				eve['fighterTwo'] = deets.xpath('.//td[4]/a/text()').extract()
+			else:
+				eve['fighterOne'] = deets.xpath('.//td[2]/text()').extract()
+				eve['fighterTwo'] = deets.xpath('.//td[4]/text()').extract()
+			
+			
+			eve['fighterOneUrl'] = deets.xpath('.//td[2]/a/@href').extract()
+			eve['fighterTwoUrl'] = deets.xpath('.//td[4]/a/@href').extract()
+			eve['fightClass'] = deets.xpath('.//td[1]/text()').extract()
+			eve['fighterOneResult'] = deets.xpath('.//td[3]/text()').extract()
+			eve['method'] = deets.xpath('.//td[5]/text()').extract()
+			eve['fightRound'] = deets.xpath('.//td[6]/text()').extract()
+			eve['time'] = deets.xpath('.//td[7]/text()').extract()
+			yield eve
+
+		next_page = response.css('.infobox').xpath('//tr/td/table/tr/td[3]/a/@href').extract_first()
+		if next_page:
+			next_page = response.urljoin(next_page)
+			yield scrapy.Request(next_page, callback=self.parse)
+		
+
+
+
+
+
+
+

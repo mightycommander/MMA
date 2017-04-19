@@ -39,3 +39,19 @@ class MmaFighterItem(scrapy.Item):
 	association = scrapy.Field()
 	weight = scrapy.Field()
 	record = scrapy.Field()
+
+class WikiEventItem(scrapy.Item):
+    promotion = scrapy.Field()
+    date = scrapy.Field()
+    venue = scrapy.Field()
+    city = scrapy.Field()
+    fighterOne = scrapy.Field()
+    fighterOneUrl = scrapy.Field()
+    fighterOneResult = scrapy.Field()
+    fighterTwo = scrapy.Field()
+    fighterTwoUrl = scrapy.Field()
+    fightClass = scrapy.Field()
+    method = scrapy.Field()
+    fightRound = scrapy.Field()
+    time = scrapy.Field()
+    
