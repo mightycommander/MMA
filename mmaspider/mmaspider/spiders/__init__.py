@@ -92,4 +92,12 @@ class fighterSpider(scrapy.Spider):
 		fighter['weight'] = response.css('.weight').xpath('text()').extract()[2]
 		fighter['association'] = response.css('.wclass .title a').xpath('text()').extract()
 		yield fighter
-	
+
+
+class WikiUFCSpider(scrapy.Spider):
+	name = "WikiUfcEventItem"
+	allowed_domains = ["wikipedia.org"]
+	start_urls = ["https://en.wikipedia.org/wiki/UFC_18"]
+
+	def parse(self, response):
+
