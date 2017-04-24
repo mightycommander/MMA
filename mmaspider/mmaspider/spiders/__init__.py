@@ -62,13 +62,13 @@ class MmaSpider(scrapy.Spider):
 
 
 
-df = pd.read_csv(r'items.csv')
-df1 = df['fighterOneUrl']
-df2 = df1.append(df['fighterTwoUrl'])
 
 
-class fighterSpider(scrapy.Spider):
 
+"""class fighterSpider(scrapy.Spider):
+	df = pd.read_csv(r"../items.csv")
+	df1 = df['fighterOneUrl']
+	df2 = df1.append(df['fighterTwoUrl'])
 
 	name = "fighterspider"
 	allowed_domains = ["sherdog.com"]
@@ -92,7 +92,7 @@ class fighterSpider(scrapy.Spider):
 		fighter['height'] = response.css('.height').xpath('text()').extract()[2]
 		fighter['weight'] = response.css('.weight').xpath('text()').extract()[2]
 		fighter['association'] = response.css('.wclass .title a').xpath('text()').extract()
-		yield fighter
+		yield fighter"""
 
 
 class WikiUFCSpider(scrapy.Spider):
@@ -106,19 +106,42 @@ class WikiUFCSpider(scrapy.Spider):
 class wikiBellatorEvent(scrapy.Spider):
 	name = "WikiBel"
 	allowed_domains = ["wikipedia.org"]
-	start_urls = ["https://en.wikipedia.org/wiki/Bellator_Fighting_Championships:_Season_Six"]
+	start_urls = ["https://en.wikipedia.org/wiki/Bellator_Fighting_Championships:_Season_Seven"]
 
 
 	def parse(self, response):
 
-		for x, fight in enumerate(response.css('.wikitable tr:has(>td)')):
+		for x, fight in enumerate(response.css('.wikitable')):
 			belevent = WikiBelEventItem()
+
 			belevent['event'] = response.css('.infobox:not(.vevent)').xpath('.//tr[1]/th/text()').extract()[x]
 			belevent['date'] = response.css('.infobox:not(.vevent)').xpath('.//tr[3]/td/text()').extract()[x]
 			belevent['city'] = response.css('.infobox:not(.vevent)').xpath('.//tr[5]/td/a/text()').extract()[x]
-			belevent['weightclass'] = fight.xpath('tr/text()').extract()
+			
+			for i in fight.css('tr').xpath('.//td/..'):
+				belevent['card'] = i.xpath('.//td[1]/text()').extract()
+				belevent['weightclass'] = i.xpath('.//td[2]/text()').extract()
+				if i.xpath('.//td[3]/a/text()').extract():
+					belevent['fighterOne'] = i.xpath('.//td[3]/a/text()').extract()
+					belevent['fighterOneUrl'] = i.xpath('.//td[3]/a/@href').extract()
+				else:
+					belevent['fighterOne'] = i.xpath('.//td[3]/text()').extract()
 
-			yield belevent
+				if i.xpath('.//td[5]/a/text()').extract():
+					belevent['fighterTwo'] = i.xpath('.//td[5]/a/text()').extract()
+					belevent['fighterTwoUrl'] = i.xpath('.//td[5]/a/@href').extract()
+				else:
+					belevent['fighterTwo'] = i.xpath('.//td[5]/text()').extract()
+					
+				belevent['notes'] = i.xpath('.//td[9]/small/text()').extract()
+				
+
+				yield belevent
+
+		next_page = response.xpath('//*[@id="mw-content-text"]/table[1]/tr/td/a/@href').extract()[-1]
+		if next_page:
+			next_page = response.urljoin(next_page)
+			yield scrapy.Request(next_page, callback=self.parse)
 
 
 class WikiUFCScrape(scrapy.Spider):
