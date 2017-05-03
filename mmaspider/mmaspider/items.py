@@ -85,3 +85,10 @@ class WikiSFEventItem(scrapy.Item):
 	fightRound = scrapy.Field()
 	roundTime = scrapy.Field()
 	notes = scrapy.Field()
+
+class WikiFighterItem(scrapy.Item):
+	name = scrapy.Field()
+	result = scrapy.Field()
+	record = scrapy.Field()
+	location = scrapy.Field()
+	notes = scrapy.Field()

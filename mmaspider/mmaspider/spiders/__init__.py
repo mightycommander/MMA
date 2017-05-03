@@ -4,7 +4,7 @@
 # your spiders.
 
 import scrapy
-from mmaspider.items import MmaspiderItem, MmaFighterItem, WikiBelEventItem, WikiSFEventItem, WikiEventItem
+from mmaspider.items import MmaspiderItem, MmaFighterItem, WikiBelEventItem, WikiSFEventItem, WikiEventItem, WikiFighterItem
 
 import pandas as pd
 import os
@@ -232,4 +232,39 @@ class wikiSFEvent(scrapy.Spider):
 			yield scrapy.Request(next_page, callback=self.parse)
 
 
+class wikiFighterScrape(scrapy.Spider):
+	name = "WikiFight"
+	allowed_domains = ["wikipedia.org"]
+	'''start_urls = ["https://en.wikipedia.org/wiki/Bellator_Fighting_Championships:_Season_Seven"]'''
+	start_urls = ["https://en.wikipedia.org/wiki/Conor_McGregor"]
 
+	'''df1, df2, df3 = pd.read_csv('belEvents.csv'), pd.read_csv('sfEvents.csv'), pd.read_csv('wikievents.csv')
+				df = pd.DataFrame()
+				df = df.append([df1, df2, df3])
+				fightername = df['fighterOneUrl']
+				fightername = fightername.append(df['fighterTwoUrl'])
+				fightername = fightername.dropna()
+				fightername = fightername.unique()
+			
+				def parse(self, response):
+					for i in fightername:
+						url = response.urljoin(i)
+						yield scrapy.Request(url, callback=self.parse_fighter)'''
+#mw-content-text > table.wikitable.sortable.jquery-tablesorter > tbody
+	def parse(self, response):
+		
+		name = response.css('h1').xpath('text()').extract()
+
+		for history in response.css('.sortable > tbody tr'):
+			fighter = WikiFighterItem()
+			fighter['name'] = name
+			fighter['notes'] = history.xpath('td[10]/small//text()').extract()
+			fighter['record'] = history.xpath('td[2]/text()').extract()
+			fighter['result'] = history.xpath('td[1]/text()').extract()
+			fighter['location'] = history.xpath('td[9]//text()').extract()
+			yield fighter
+
+
+			
+
+		
