@@ -92,3 +92,10 @@ class WikiFighterItem(scrapy.Item):
 	record = scrapy.Field()
 	location = scrapy.Field()
 	notes = scrapy.Field()
+	versus = scrapy.Field()
+	method = scrapy.Field()
+	event = scrapy.Field()
+	date = scrapy.Field()
+	fRound = scrapy.Field()
+	time = scrapy.Field()
+	 

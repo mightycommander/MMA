@@ -238,33 +238,46 @@ class wikiFighterScrape(scrapy.Spider):
 	'''start_urls = ["https://en.wikipedia.org/wiki/Bellator_Fighting_Championships:_Season_Seven"]'''
 	start_urls = ["https://en.wikipedia.org/wiki/Conor_McGregor"]
 
-	'''df1, df2, df3 = pd.read_csv('belEvents.csv'), pd.read_csv('sfEvents.csv'), pd.read_csv('wikievents.csv')
-				df = pd.DataFrame()
-				df = df.append([df1, df2, df3])
-				fightername = df['fighterOneUrl']
-				fightername = fightername.append(df['fighterTwoUrl'])
-				fightername = fightername.dropna()
-				fightername = fightername.unique()
-			
-				def parse(self, response):
-					for i in fightername:
-						url = response.urljoin(i)
-						yield scrapy.Request(url, callback=self.parse_fighter)'''
-#mw-content-text > table.wikitable.sortable.jquery-tablesorter > tbody
+	
+
 	def parse(self, response):
+		df1, df2, df3 = pd.read_csv('belEvents.csv'), pd.read_csv('sfEvents.csv'), pd.read_csv('wikievents.csv')
+		df = pd.DataFrame()
+		df = df.append([df1, df2, df3])
+		fightername = df['fighterOneUrl']
+		fightername = fightername.append(df['fighterTwoUrl'])
+		fightername = fightername.dropna()
+		fightername = fightername.unique()
+
+		for i in fightername:
+			url = response.urljoin(i)
+			yield scrapy.Request(url, callback=self.parse_fighter)
+#mw-content-text > table.wikitable.sortable.jquery-tablesorter > tbody
+	def parse_fighter(self, response):
 		
 		name = response.css('h1').xpath('text()').extract()
 
-		for history in response.css('.sortable > tbody tr'):
+		for history in response.css('.sortable').xpath('.//tr/td/..'):
 			fighter = WikiFighterItem()
 			fighter['name'] = name
 			fighter['notes'] = history.xpath('td[10]/small//text()').extract()
 			fighter['record'] = history.xpath('td[2]/text()').extract()
 			fighter['result'] = history.xpath('td[1]/text()').extract()
 			fighter['location'] = history.xpath('td[9]//text()').extract()
+			if history.xpath('td[3]/a/text()'):
+				fighter['versus'] = history.xpath('td[3]/a/text()').extract()
+			else:
+				fighter['versus'] = history.xpath('td[3]/text()').extract()
+			fighter['method'] = history.xpath('td[4]/text()').extract()
+			if history.xpath('td[5]/a/text()'):
+				fighter['event'] = history.xpath('td[5]/a/text()').extract()
+			else:
+				fighter['event'] = history.xpath('td[5]/text()').extract()
+			fighter['date'] = history.xpath('td[6]/span/text()').extract()
+			fighter['fRound'] = history.xpath('td[7]/text()').extract()
+			fighter['time'] = history.xpath('td[8]/text()').extract()
 			yield fighter
 
 
 			
 
-		
