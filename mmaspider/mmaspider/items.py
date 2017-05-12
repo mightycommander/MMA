@@ -41,6 +41,7 @@ class MmaFighterItem(scrapy.Item):
 
 class WikiEventItem(scrapy.Item): 
     promotion = scrapy.Field() 
+    event = scrapy.Field() 
     date = scrapy.Field() 
     venue = scrapy.Field() 
     city = scrapy.Field() 
